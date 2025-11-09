@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../interfaces/api-response';
+import { jwtDecode } from 'jwt-decode';
+
 
 export interface LoginRequest {
   email: string;
@@ -17,7 +19,14 @@ export interface LoginResponseData {
   };
 }
 
-export interface LoginResponse extends ApiResponse<LoginResponseData>{
+export interface User {
+  id: number;
+  email: string;
+  role: 0 | 1; // ← ADICIONAR role no token
+  name: string;
+}
+
+export interface LoginResponse extends ApiResponse<LoginResponseData> {
 }
 
 @Injectable({
@@ -33,7 +42,7 @@ export class AuthService {
   }
 
   setToken(token: string | undefined): void {
-    if(token) localStorage.setItem('auth_token', token);
+    if (token) localStorage.setItem('auth_token', token);
   }
 
   getToken(): string | null {
@@ -44,7 +53,37 @@ export class AuthService {
     localStorage.removeItem('auth_token');
   }
 
-  isLoggedIn(): boolean{
+  isLoggedIn(): boolean {
     return !!this.getToken();
+  }
+
+  getUserRole(): number | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      console.log('TOKEN DECODIFICADO:', decoded); // ← ADICIONE ESTA LINHA
+      console.log('ROLE DO TOKEN:', decoded.role, 'TIPO:', typeof decoded.role);
+      return parseInt(decoded.role);
+    } catch (error) {
+      console.error('Erro ao decodificar token:', error);
+      return null;
+    }
+  }
+
+  getCurrentUser(): User | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      return jwtDecode<User>(token);
+    } catch {
+      return null;
+    }
+  }
+
+  isAdmin(): boolean {
+    return this.getUserRole() === 0;
   }
 }

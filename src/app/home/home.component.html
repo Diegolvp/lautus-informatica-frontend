@@ -16,6 +16,15 @@
       </div>
     </div>
   </header>
+  <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    
+    <!-- ADMIN -->
+    <app-admin-home *ngIf="isAdmin()"></app-admin-home>
+    
+    <!-- CLIENT -->
+    <app-client-home *ngIf="!isAdmin()"></app-client-home>
+
+  </main>
 
   <!-- Resto do conteúdo igual... -->
 </div>
