@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SideMenuComponent } from '../side-menu/side-menu.component';
@@ -31,7 +31,8 @@ export interface ItemResponse extends ApiResponse<Item[]> {
   standalone: true,
   imports: [CommonModule, FormsModule, SideMenuComponent],
   templateUrl: './items.component.html',
-  styleUrls: ['./items.component.css']
+  styleUrls: ['./items.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ItemsComponent implements OnInit {
 
@@ -45,6 +46,15 @@ export class ItemsComponent implements OnInit {
   // Estados da aplicação
   loading: boolean = false;
   error: string | null = null;
+
+  showCreateModal: boolean = false;
+  newItem: Partial<Item> = {
+    name: '',
+    description: '',
+    category: 0,
+    unitPrice: 0,
+    quantity: 0
+  };
 
   constructor(
     private http: HttpClient,
@@ -69,6 +79,7 @@ export class ItemsComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.items = response.data || [];
+          this.updateFilteredItems();
           this.loading = false;
         },
         error: (error) => {
@@ -90,44 +101,71 @@ export class ItemsComponent implements OnInit {
     }
   }
 
-  // Getter para as categorias disponíveis (para o select)
-  get categories(): { value: number, text: string }[] {
-    return [
-      { value: ItemCategory.Peripheral, text: 'Peripheral' },
-      { value: ItemCategory.Hardware, text: 'Hardware' },
-      { value: ItemCategory.Software, text: 'Software' },
-      { value: ItemCategory.Accessory, text: 'Accessory' },
-      { value: ItemCategory.Other, text: 'Other' }
-    ];
-  }
+  categories: { value: number, text: string }[] = [
+    { value: ItemCategory.Peripheral, text: 'Peripheral' },
+    { value: ItemCategory.Hardware, text: 'Hardware' },
+    { value: ItemCategory.Software, text: 'Software' },
+    { value: ItemCategory.Accessory, text: 'Accessory' },
+    { value: ItemCategory.Other, text: 'Other' }
+  ];
 
+  filteredItems: Item[] = [];
+  totalItems: number = 0;
+  lowStockItems: number = 0;
+  totalValue: number = 0;
 
 
   // Filtros e busca
-  filterItems(): void {
-    // Já é tratado pelo getter filteredItems
-    console.log('Filtrando itens:', {
-      searchTerm: this.searchTerm,
-      category: this.selectedCategory
+  updateFilteredItems(): void {
+    let filtered = this.items;
+
+    // Filtro por busca
+    if (this.searchTerm) {
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        item.description.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    }
+
+    if (this.selectedCategory && this.selectedCategory !== 0 && this.selectedCategory !== '0') {
+      const categoryNum = Number(this.selectedCategory);
+      filtered = filtered.filter(item => item.category === categoryNum);
+    }
+
+    // Ordenação
+    filtered = [...filtered].sort((a, b) => {
+      switch (this.sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'unitPrice':
+          return a.unitPrice - b.unitPrice;
+        case 'quantity':
+          return a.quantity - b.quantity;
+        default:
+          return 0;
+      }
     });
+
+    this.filteredItems = filtered;
+    this.totalItems = this.items.length;
+    this.lowStockItems = this.items.filter(item => item.quantity <= 5 && item.quantity > 0).length;
+    this.totalValue = this.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
+  }
+
+  // ✅ Chame este método quando os filtros mudarem
+  filterItems(): void {
+    this.updateFilteredItems();
   }
 
   sortItems(): void {
-    // Já é tratado pelo getter filteredItems
-    console.log('Ordenando por:', this.sortBy);
+    this.updateFilteredItems();
   }
 
   clearFilters(): void {
     this.searchTerm = '';
     this.selectedCategory = 0;
     this.sortBy = 'name';
-    console.log('Filtros limpos');
-  }
-
-  // Métodos para ações
-  openCreateModal(): void {
-    console.log('Abrindo modal de criação');
-    // Implementar abertura de modal
+    this.updateFilteredItems();
   }
 
   editItem(item: any): void {
@@ -172,56 +210,6 @@ export class ItemsComponent implements OnInit {
     // Implementar duplicação
   }
 
-  // Getters computados
-  get filteredItems(): any[] {
-    let filtered = this.items;
-
-    // Filtro por busca
-    if (this.searchTerm) {
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(this.searchTerm.toLowerCase())
-      );
-    }
-
-    if (this.selectedCategory && this.selectedCategory !== 0 && this.selectedCategory !== '0') {
-      const categoryNum = Number(this.selectedCategory);
-      filtered = filtered.filter(item => item.category === categoryNum);
-    }
-
-    // Ordenação
-    filtered = [...filtered].sort((a, b) => {
-      switch (this.sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'unitPrice':
-          return a.unitPrice - b.unitPrice;
-        case 'quantity':
-          return a.quantity - b.quantity;
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
-  }
-
-  get totalItems(): number {
-    return this.items.length;
-  }
-
-  get lowStockItems(): number {
-    return this.items.filter(item => item.quantity <= 5 && item.quantity > 0).length;
-  }
-
-  get outOfquantityItems(): number {
-    return this.items.filter(item => item.quantity === 0).length;
-  }
-
-  get totalValue(): number {
-    return this.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
-  }
-
   // Métodos de utilidade
   getRoleText(role: number): string {
     // Mantido do seu componente original
@@ -250,5 +238,60 @@ export class ItemsComponent implements OnInit {
   viewItemHistory(item: any): void {
     console.log('Visualizando histórico do item:', item);
     // Implementar histórico
+  }
+
+  openCreateModal(): void {
+    this.showCreateModal = true;
+    // Resetar formulário
+    this.newItem = {
+      name: '',
+      description: '',
+      quantity: 0,
+      unitPrice: 0,
+      category: 1
+    };
+  }
+
+  // Fechar modal
+  closeCreateModal(): void {
+    this.showCreateModal = false;
+  }
+
+  // Validar formulário
+  isFormValid(): boolean {
+    return !!this.newItem.name &&
+      !!this.newItem.category &&
+      this.newItem.unitPrice !== undefined &&
+      this.newItem.quantity !== undefined;
+  }
+
+  // Submeter novo item
+  submitNewItem(): void {
+    if (!this.isFormValid()) return;
+
+    this.loading = true;
+
+    console.log(this.newItem);
+
+    this.http.post<ItemResponse>('http://localhost:5170/api/items', this.newItem)
+      .subscribe({
+        next: (response) => {
+          // Adiciona o novo item à lista
+          if (response.data) {
+            this.items.unshift(response.data[0]);
+          }
+
+          this.closeCreateModal();
+          this.loading = false;
+
+          // Feedback visual (opcional)
+          console.log('Item cadastrado com sucesso!');
+        },
+        error: (error) => {
+          this.error = 'Erro ao cadastrar item';
+          this.loading = false;
+          console.error('Erro:', error);
+        }
+      });
   }
 }

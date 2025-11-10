@@ -63,11 +63,8 @@ export class AuthService {
 
     try {
       const decoded: any = jwtDecode(token);
-      console.log('TOKEN DECODIFICADO:', decoded); // ← ADICIONE ESTA LINHA
-      console.log('ROLE DO TOKEN:', decoded.role, 'TIPO:', typeof decoded.role);
       return parseInt(decoded.role);
     } catch (error) {
-      console.error('Erro ao decodificar token:', error);
       return null;
     }
   }
