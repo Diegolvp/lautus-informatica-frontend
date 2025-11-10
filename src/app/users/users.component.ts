@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
 import { SideMenuComponent } from '../side-menu/side-menu.component';
 import { ApiResponse } from '../interfaces/api-response';
@@ -90,7 +90,83 @@ export class UsersComponent implements OnInit {
     }
   }
 
-  toggleUserStatus(user: User) {
-    
+  showEditModal: boolean = false;
+  editingUser: User | null = null;
+  editUserData: Partial<User> = {};
+
+  openEditModal(user: User): void {
+    this.editingUser = user;
+    this.editUserData = {
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      role: user.role
+    };
+    this.showEditModal = true;
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editingUser = null;
+    this.editUserData = {};
+  }
+
+  isEditFormValid(): boolean {
+    return !!this.editUserData.username &&
+      !!this.editUserData.role &&
+      this.editUserData.email !== undefined &&
+      this.editUserData.address !== undefined;
+  }
+
+  submitEditUser(): void {
+    if (!this.isEditFormValid() || !this.editingUser) return;
+
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const userToSend = {
+      ...this.editUserData,
+      role: Number(this.editUserData.role)
+    };
+
+    this.loading = true;
+
+    this.http.put<UserResponse>(`http://localhost:5170/api/Users/${this.editingUser.id}`, userToSend, { headers })
+      .subscribe({
+        next: (response) => {
+          if (response.data && response.success) {
+            // ✅ Atualiza o User na lista
+            const index = this.users.findIndex(user => user.id === this.editingUser!.id);
+            if (index > -1) {
+            }
+
+            // ✅ Fecha o modal
+            this.closeEditModal();
+
+            console.log('✅ User editado com sucesso!');
+          } else {
+            this.error = response.message || 'Erro ao editar User';
+          }
+
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Erro ao editar User:', error);
+
+          // ✅ Melhor tratamento de erro
+          if (error.status === 500) {
+            this.error = 'Erro interno no servidor ao editar User';
+          } else if (error.status === 400) {
+            this.error = 'Dados inválidos para edição';
+          } else {
+            this.error = 'Erro ao editar User';
+          }
+
+          this.loading = false;
+        }
+      });
   }
 }
