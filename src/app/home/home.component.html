@@ -1,7 +1,7 @@
-<div class="min-h-screen bg-gray-100">
-  <!-- Header -->
-  <header class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen w-full bg-gray-100">
+    <!-- Header -->
+    <!--<header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto">
       <div class="flex justify-between items-center py-4">
         <h1 class="text-2xl font-bold text-gray-900">Lautus Informática</h1>
         
@@ -14,17 +14,18 @@
           </button>
         </div>
       </div>
-    </div>
-  </header>
-  <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-    
-    <!-- ADMIN -->
-    <app-admin-home *ngIf="isAdmin()"></app-admin-home>
-    
-    <!-- CLIENT -->
-    <app-client-home *ngIf="!isAdmin()"></app-client-home>
+    </div> 
+  </header>-->
+    <main class="overflow-x-hidden flex w-full">
+        <app-side-menu class="w-72" [user]="currentUser" logoUrl="assets/images/logo.png">
+        </app-side-menu>
+        <!-- ADMIN -->
+        <app-admin-home class="w-full" *ngIf="isAdmin()"></app-admin-home>
 
-  </main>
+        <!-- CLIENT -->
+        <app-client-home class="w-full" *ngIf="!isAdmin()"></app-client-home>
 
-  <!-- Resto do conteúdo igual... -->
+    </main>
+
+    <!-- Resto do conteúdo igual... -->
 </div>
