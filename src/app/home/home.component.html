@@ -17,7 +17,7 @@
     </div> 
   </header>-->
     <main class="overflow-x-hidden flex w-full">
-        <app-side-menu class="w-72" [user]="currentUser" logoUrl="assets/images/logo.png">
+        <app-side-menu class="w-[288px] flex-shrink-0" [user]="currentUser" logoUrl="assets/images/logo.png">
         </app-side-menu>
         <!-- ADMIN -->
         <app-admin-home class="w-full" *ngIf="isAdmin()"></app-admin-home>

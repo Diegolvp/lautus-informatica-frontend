@@ -1,7 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { filter } from 'rxjs';
 
 export interface MenuItem {
   label: string;
@@ -33,6 +34,21 @@ export class SideMenuComponent implements OnInit {
 
   ngOnInit() {
     this.loadMenuItems();
+    this.setActiveItemByRoute();
+  
+    this.router.events
+    .pipe(filter(event => event instanceof NavigationEnd))
+    .subscribe(() => {
+      this.setActiveItemByRoute();
+    });
+  }
+
+  private setActiveItemByRoute() {
+    const currentRoute = this.router.url;
+    
+    this.menuItems.forEach(item => {
+      item.isActive = item.route ? currentRoute.startsWith(item.route) : false;
+    });
   }
 
   logout() {
@@ -58,7 +74,7 @@ export class SideMenuComponent implements OnInit {
       {
         label: 'Dashboard',
         icon: '📊',
-        route: '/admin/dashboard',
+        route: '/home',
         isActive: true
       },
       {
