@@ -1,1 +1,197 @@
-<p>admin-home works!</p>    
+<div class="flex p-0 w-full h-screen bg-gray-100">
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="flex-1 overflow-auto w-full">
+    
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+      <div class="px-6 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <div class="flex items-center space-x-4">
+            <div class="w-8 h-8 bg-gray-200 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Estatísticas -->
+    <div class="p-6">
+      
+      <!-- Cards de Estatísticas -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        
+        <!-- Total Clientes -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+          <div class="flex items-center">
+            <div class="p-3 bg-blue-100 rounded-lg">
+              <span class="text-2xl">👥</span>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Clientes Cadastrados</p>
+              <p class="text-2xl font-bold text-gray-900">48</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <span class="text-green-600 text-sm font-medium">↑ 12% este mês</span>
+          </div>
+        </div>
+
+        <!-- Total Itens -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
+          <div class="flex items-center">
+            <div class="p-3 bg-green-100 rounded-lg">
+              <span class="text-2xl">📦</span>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Total de Itens</p>
+              <p class="text-2xl font-bold text-gray-900">156</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <span class="text-green-600 text-sm font-medium">↑ 8% este mês</span>
+          </div>
+        </div>
+
+        <!-- Ordens Pendentes -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
+          <div class="flex items-center">
+            <div class="p-3 bg-yellow-100 rounded-lg">
+              <span class="text-2xl">🔧</span>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">OS Pendentes</p>
+              <p class="text-2xl font-bold text-gray-900">12</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <span class="text-red-600 text-sm font-medium">↑ 3% este mês</span>
+          </div>
+        </div>
+
+        <!-- Faturamento -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
+          <div class="flex items-center">
+            <div class="p-3 bg-purple-100 rounded-lg">
+              <span class="text-2xl">💰</span>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-600">Faturamento Mensal</p>
+              <p class="text-2xl font-bold text-gray-900">R$ 45.230</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <span class="text-green-600 text-sm font-medium">↑ 15% este mês</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Gráficos e Tabelas -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Gráfico de Vendas -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Vendas do Mês</h3>
+          <div class="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
+            <p class="text-gray-500">📈 Gráfico de Vendas</p>
+          </div>
+        </div>
+
+        <!-- Atividades Recentes -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Atividades Recentes</h3>
+          <div class="space-y-4">
+            
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1">
+                <span class="text-green-600 text-sm">+</span>
+              </div>
+              <div>
+                <p class="text-sm font-medium">Novo cliente cadastrado</p>
+                <p class="text-xs text-gray-500">João Silva • Há 2 horas</p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mt-1">
+                <span class="text-blue-600 text-sm">🔧</span>
+              </div>
+              <div>
+                <p class="text-sm font-medium">Nova ordem de serviço</p>
+                <p class="text-xs text-gray-500">Maria Santos • Há 4 horas</p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mt-1">
+                <span class="text-yellow-600 text-sm">✓</span>
+              </div>
+              <div>
+                <p class="text-sm font-medium">OS concluída</p>
+                <p class="text-xs text-gray-500">Pedro Costa • Há 1 dia</p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mt-1">
+                <span class="text-purple-600 text-sm">📦</span>
+              </div>
+              <div>
+                <p class="text-sm font-medium">Novo item cadastrado</p>
+                <p class="text-xs text-gray-500">Sistema ERP • Há 2 dias</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tabela Rápida -->
+      <div class="mt-6 bg-white rounded-xl shadow-sm p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">Últimos Clientes</h3>
+          <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            Ver todos →
+          </button>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left py-3 text-sm font-medium text-gray-600">Cliente</th>
+                <th class="text-left py-3 text-sm font-medium text-gray-600">Email</th>
+                <th class="text-left py-3 text-sm font-medium text-gray-600">Data Cadastro</th>
+                <th class="text-left py-3 text-sm font-medium text-gray-600">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-3">João Silva</td>
+                <td class="py-3">joao@email.com</td>
+                <td class="py-3">15/11/2024</td>
+                <td class="py-3"><span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">Ativo</span></td>
+              </tr>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-3">Maria Santos</td>
+                <td class="py-3">maria@email.com</td>
+                <td class="py-3">14/11/2024</td>
+                <td class="py-3"><span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">Ativo</span></td>
+              </tr>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="py-3">Pedro Costa</td>
+                <td class="py-3">pedro@email.com</td>
+                <td class="py-3">10/11/2024</td>
+                <td class="py-3"><span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-full text-xs">Pendente</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
