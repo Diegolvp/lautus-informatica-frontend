@@ -6,7 +6,7 @@ import { SideMenuComponent } from '../side-menu/side-menu.component';
 import { ApiResponse } from '../interfaces/api-response';
 import { FormsModule } from '@angular/forms';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faTrash, faPen, faShieldHalved, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faShieldHalved, faLock, faLockOpen, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule, FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 export interface UserRequest {
@@ -48,9 +48,11 @@ export enum Role {
   Client = 1,
 }
 
-export interface UserResponse extends ApiResponse<User[]> {}
+export interface UserResponse extends ApiResponse<User[]> { }
 
-export interface UserCreateResponse extends ApiResponse<User> {}
+export interface UserUpdateResponse extends ApiResponse<UserRequest> { }
+
+export interface UserCreateResponse extends ApiResponse<User> { }
 
 @Component({
   selector: 'app-users',
@@ -65,11 +67,16 @@ export class UsersComponent implements OnInit {
   faPen = faPen;
   faLock = faLock;
   faLockOpen = faLockOpen;
+  faSearch = faSearch;
   users: User[] = [];
   loading: boolean = true;
   error: string = '';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  filteredUsers: User[] = [];
+
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
   ngOnInit() {
     this.loadUsers();
@@ -83,6 +90,7 @@ export class UsersComponent implements OnInit {
       next: (response) => {
         this.users = response.data || [];
         this.loading = false;
+        this.filteredUsers = [...this.users];
       },
       error: (error) => {
         this.error = 'Erro ao carregar usuários';
@@ -137,10 +145,10 @@ export class UsersComponent implements OnInit {
     this.editingUser = user;
     this.editUserData = {
       username: user.username,
-      email: user.email,
       phone: user.phone,
-      address: user.address,
+      email: user.email,
       role: user.role,
+      address: user.address,
     };
     this.showEditModal = true;
   }
@@ -175,6 +183,9 @@ export class UsersComponent implements OnInit {
       role: Number(this.editUserData.role),
     };
 
+    console.log(userToSend);
+    console.log(this.editingUser.id);
+
     this.loading = true;
 
     this.http
@@ -187,8 +198,12 @@ export class UsersComponent implements OnInit {
             // ✅ Atualiza o User na lista
             const index = this.users.findIndex((user) => user.id === this.editingUser!.id);
             if (index > -1) {
+              this.users[index] = {
+                ...this.users[index],
+                ...this.editUserData,
+              };
             }
-
+            this.filteredUsers = [...this.users];
             // ✅ Fecha o modal
             this.closeEditModal();
 
@@ -202,7 +217,6 @@ export class UsersComponent implements OnInit {
         error: (error) => {
           console.error('❌ Erro ao editar User:', error);
 
-          // ✅ Melhor tratamento de erro
           if (error.status === 500) {
             this.error = 'Erro interno no servidor ao editar User';
           } else if (error.status === 400) {
@@ -253,7 +267,11 @@ export class UsersComponent implements OnInit {
             if (index > -1) {
               this.users.splice(index, 1);
             }
+
+
             this.closeDeleteModal();
+            this.filteredUsers = [...this.users]
+
             console.log('🎉 Users excluído com sucesso!');
           } else {
             this.error = response.message || 'Erro ao excluir Users';
@@ -349,7 +367,7 @@ export class UsersComponent implements OnInit {
   }
 
   isChangePassFormValid(): boolean {
-    return !!this.changePassData.password && !!this.changePassData.verifyNewPassword && this.changePassData.password === this.changePassData.verifyNewPassword; 
+    return !!this.changePassData.password && !!this.changePassData.verifyNewPassword && this.changePassData.password === this.changePassData.verifyNewPassword;
   }
 
   confirmChangePass(): void {
@@ -423,8 +441,8 @@ export class UsersComponent implements OnInit {
           if (response.success) {
             const index = this.users.findIndex(user => user.id === this.editingUser!.id);
             if (index > -1) {
+              this.users[index].isLocked = false;
             }
-
 
             console.log('Usuario desbloquado com sucesso!');
           } else {
@@ -447,5 +465,57 @@ export class UsersComponent implements OnInit {
           this.loading = false;
         }
       });
+  }
+
+  sortTable(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.filteredUsers.sort((a, b) => {
+      let valueA, valueB;
+
+      switch (column) {
+        case 'username':
+          valueA = a.username.toLowerCase();
+          valueB = b.username.toLowerCase();
+          break;
+        case 'email':
+          valueA = a.email.toLowerCase();
+          valueB = b.email.toLowerCase();
+          break;
+        case 'address':
+          valueA = a.address.toLowerCase();
+          valueB = b.address.toLowerCase();
+          break;
+        case 'role':
+          valueA = a.role;
+          valueB = b.role;
+          break;
+        case 'block':
+          valueA = a.isLocked;
+          valueB = b.isLocked;
+          break;
+        default:
+          return 0;
+      }
+      if (valueA < valueB) {
+        return this.sortDirection === 'asc' ? -1 : 1;
+      }
+      if (valueA > valueB) {
+        return this.sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }
+
+  getSortIcon(column: string): string {
+    if (this.sortColumn !== column) {
+      return ''; // Ícone neutro
+    }
+    return this.sortDirection === 'asc' ? '↑' : '↓';
   }
 }
