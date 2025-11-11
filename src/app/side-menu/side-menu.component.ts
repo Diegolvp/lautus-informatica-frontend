@@ -15,6 +15,7 @@ import {
   faStickyNote,
   faHeadset,
   faSackDollar,
+  faSignOutAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
@@ -47,6 +48,7 @@ export class SideMenuComponent implements OnInit {
   faStickyNote = faStickyNote;
   faHeadset = faHeadset;
   faSackDollar = faSackDollar;
+  faSignOutAlt = faSignOutAlt;
   @Input() user: any;
   @Input() logoUrl: string = 'assets/images/logo.png';
 
