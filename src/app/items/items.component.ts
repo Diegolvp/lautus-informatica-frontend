@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SideMenuComponent } from '../side-menu/side-menu.component';
 import { ApiResponse } from '../interfaces/api-response';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
 
 export interface Item {
@@ -26,12 +26,16 @@ export enum ItemCategory {
 export interface ItemResponse extends ApiResponse<Item[]> {
 }
 
+export interface ItemCreateResponse extends ApiResponse<Item> {
+}
+
 @Component({
   selector: 'app-items',
   standalone: true,
   imports: [CommonModule, FormsModule, SideMenuComponent],
   templateUrl: './items.component.html',
-  styleUrls: ['./items.component.css']
+  styleUrls: ['./items.component.css'],
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class ItemsComponent implements OnInit {
 
@@ -46,13 +50,27 @@ export class ItemsComponent implements OnInit {
   loading: boolean = false;
   error: string | null = null;
 
+  showCreateModal: boolean = false;
+  newItem: Partial<Item> = {
+    name: '',
+    description: '',
+    category: 0,
+    unitPrice: 0,
+    quantity: 0
+  };
+
+  showEditModal: boolean = false;
+  editingItem: Item | null = null;
+  editItemData: Partial<Item> = {};
+
+  showDeleteModal: boolean = false;
+  itemToDelete: Item | null = null;
+  deleteLoading: boolean = false;
+
   constructor(
     private http: HttpClient,
     private authService: AuthService
   ) { }
-
-
-
 
   currentUser: any = { username: 'Admin' }; // Mock user
 
@@ -69,6 +87,7 @@ export class ItemsComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.items = response.data || [];
+          this.updateFilteredItems();
           this.loading = false;
         },
         error: (error) => {
@@ -90,90 +109,22 @@ export class ItemsComponent implements OnInit {
     }
   }
 
-  // Getter para as categorias disponíveis (para o select)
-  get categories(): { value: number, text: string }[] {
-    return [
-      { value: ItemCategory.Peripheral, text: 'Peripheral' },
-      { value: ItemCategory.Hardware, text: 'Hardware' },
-      { value: ItemCategory.Software, text: 'Software' },
-      { value: ItemCategory.Accessory, text: 'Accessory' },
-      { value: ItemCategory.Other, text: 'Other' }
-    ];
-  }
+  categories: { value: number, text: string }[] = [
+    { value: ItemCategory.Peripheral, text: 'Peripheral' },
+    { value: ItemCategory.Hardware, text: 'Hardware' },
+    { value: ItemCategory.Software, text: 'Software' },
+    { value: ItemCategory.Accessory, text: 'Accessory' },
+    { value: ItemCategory.Other, text: 'Other' }
+  ];
 
+  filteredItems: Item[] = [];
+  totalItems: number = 0;
+  lowStockItems: number = 0;
+  totalValue: number = 0;
 
 
   // Filtros e busca
-  filterItems(): void {
-    // Já é tratado pelo getter filteredItems
-    console.log('Filtrando itens:', {
-      searchTerm: this.searchTerm,
-      category: this.selectedCategory
-    });
-  }
-
-  sortItems(): void {
-    // Já é tratado pelo getter filteredItems
-    console.log('Ordenando por:', this.sortBy);
-  }
-
-  clearFilters(): void {
-    this.searchTerm = '';
-    this.selectedCategory = 0;
-    this.sortBy = 'name';
-    console.log('Filtros limpos');
-  }
-
-  // Métodos para ações
-  openCreateModal(): void {
-    console.log('Abrindo modal de criação');
-    // Implementar abertura de modal
-  }
-
-  editItem(item: any): void {
-    console.log('Editando item:', item);
-    // Implementar edição
-  }
-
-  deleteItem(item: any): void {
-    console.log('Excluindo item:', item);
-    if (confirm(`Deseja realmente excluir o item "${item.name}"?`)) {
-      // Implementar exclusão
-      const index = this.items.findIndex(i => i.id === item.id);
-      if (index > -1) {
-        this.items.splice(index, 1);
-      }
-    }
-  }
-
-  // Métodos vazios para funcionalidades futuras
-  toggleItemStatus(item: any): void {
-    console.log('Alternando status do item:', item);
-    // Implementar alternância de status
-  }
-
-  exportItems(): void {
-    console.log('Exportando itens');
-    // Implementar exportação
-  }
-
-  importItems(): void {
-    console.log('Importando itens');
-    // Implementar importação
-  }
-
-  viewItemDetails(item: any): void {
-    console.log('Visualizando detalhes do item:', item);
-    // Implementar visualização de detalhes
-  }
-
-  duplicateItem(item: any): void {
-    console.log('Duplicando item:', item);
-    // Implementar duplicação
-  }
-
-  // Getters computados
-  get filteredItems(): any[] {
+  updateFilteredItems(): void {
     let filtered = this.items;
 
     // Filtro por busca
@@ -203,52 +154,218 @@ export class ItemsComponent implements OnInit {
       }
     });
 
-    return filtered;
+    this.filteredItems = filtered;
+    this.totalItems = this.items.length;
+    this.lowStockItems = this.items.filter(item => item.quantity <= 5 && item.quantity > 0).length;
+    this.totalValue = this.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
   }
 
-  get totalItems(): number {
-    return this.items.length;
+  // ✅ Chame este método quando os filtros mudarem
+  filterItems(): void {
+    this.updateFilteredItems();
   }
 
-  get lowStockItems(): number {
-    return this.items.filter(item => item.quantity <= 5 && item.quantity > 0).length;
+  sortItems(): void {
+    this.updateFilteredItems();
   }
 
-  get outOfquantityItems(): number {
-    return this.items.filter(item => item.quantity === 0).length;
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.selectedCategory = 0;
+    this.sortBy = 'name';
+    this.updateFilteredItems();
   }
 
-  get totalValue(): number {
-    return this.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
+  editItem(item: any): void {
+    console.log('Editando item:', item);
+    // Implementar edição
   }
 
-  // Métodos de utilidade
-  getRoleText(role: number): string {
-    // Mantido do seu componente original
-    return role === 0 ? 'Administrador' : 'Usuário';
+  openEditModal(item: Item): void {
+    this.editingItem = item;
+    this.editItemData = {
+      name: item.name,
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      category: item.category
+    };
+    this.showEditModal = true;
   }
 
-  // Método para simular upload de imagem
-  onImageUpload(event: any, item: any): void {
-    console.log('Upload de imagem para:', item);
-    // Implementar upload
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editingItem = null;
+    this.editItemData = {};
   }
 
-  // Método para preview rápido
-  quickPreview(item: any): void {
-    console.log('Preview rápido:', item);
-    // Implementar preview
+  isEditFormValid(): boolean {
+    return !!this.editItemData.name &&
+      !!this.editItemData.category &&
+      this.editItemData.unitPrice !== undefined &&
+      this.editItemData.quantity !== undefined;
   }
 
-  // Método para ajuste de estoque
-  adjustquantity(item: any, newquantity: number): void {
-    console.log(`Ajustando estoque de ${item.name} para ${newquantity}`);
-    // Implementar ajuste de estoque
+  submitEditItem(): void {
+    if (!this.isEditFormValid() || !this.editingItem) return;
+
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const itemToSend = {
+      ...this.editItemData,
+      category: Number(this.editItemData.category),
+      quantity: Number(this.editItemData.quantity),
+      unitPrice: Number(this.editItemData.unitPrice)
+    };
+
+    this.loading = true;
+
+    this.http.put<ItemCreateResponse>(`http://localhost:5170/api/items/${this.editingItem.id}`, itemToSend, { headers })
+      .subscribe({
+        next: (response) => {
+          if (response.data) {
+            // Atualiza o item na lista
+            const index = this.items.findIndex(item => item.id === this.editingItem!.id);
+            if (index > -1) {
+              this.items[index] = response.data;
+            }
+            this.updateFilteredItems();
+          }
+
+          this.updateFilteredItems();
+
+          this.closeEditModal();
+          this.updateFilteredItems();
+          this.loading = false;
+          console.log('Item editado com sucesso!');
+        },
+        error: (error) => {
+          this.error = 'Erro ao editar item';
+          this.loading = false;
+          console.error('Erro:', error);
+        }
+      });
   }
 
-  // Método para histórico do item
-  viewItemHistory(item: any): void {
-    console.log('Visualizando histórico do item:', item);
-    // Implementar histórico
+  openDeleteModal(item: Item): void {
+    this.itemToDelete = item;
+    this.showDeleteModal = true;
+  }
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.itemToDelete = null;
+    this.deleteLoading = false;
+  }
+  confirmDelete(): void {
+    if (!this.itemToDelete) return;
+
+    this.deleteLoading = true;
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    console.log('🗑️ Excluindo item:', this.itemToDelete);
+
+    this.http.delete<ApiResponse<boolean>>(`http://localhost:5170/api/items/${this.itemToDelete.id}`, { headers })
+      .subscribe({
+        next: (response) => {
+          console.log('✅ Resposta do delete:', response);
+
+          if (response.success) {
+            // Remove o item da lista
+            const index = this.items.findIndex(item => item.id === this.itemToDelete!.id);
+            if (index > -1) {
+              this.items.splice(index, 1);
+              this.updateFilteredItems();
+            }
+            this.closeDeleteModal();
+            console.log('🎉 Item excluído com sucesso!');
+          } else {
+            this.error = response.message || 'Erro ao excluir item';
+          }
+
+          this.deleteLoading = false;
+        },
+        error: (error) => {
+          console.error('❌ Erro ao excluir:', error);
+        }
+      });
+  }
+
+  openCreateModal(): void {
+    this.showCreateModal = true;
+    // Resetar formulário
+    this.newItem = {
+      name: '',
+      description: '',
+      quantity: 0,
+      unitPrice: 0,
+      category: 1
+    };
+  }
+
+  // Fechar modal
+  closeCreateModal(): void {
+    this.showCreateModal = false;
+  }
+
+  // Validar formulário
+  isFormValid(): boolean {
+    return !!this.newItem.name &&
+      !!this.newItem.category &&
+      this.newItem.unitPrice !== undefined &&
+      this.newItem.quantity !== undefined;
+  }
+
+  // Submeter novo item
+  submitNewItem(): void {
+    if (!this.isFormValid()) return;
+
+    const token = this.authService.getToken();
+
+    // Criar headers com o token
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const itemToSend = {
+      ...this.newItem,
+      category: Number(this.newItem.category), // ✅ Converter para número
+      quantity: Number(this.newItem.quantity), // ✅ Converter para número
+      unitPrice: Number(this.newItem.unitPrice) // ✅ Converter para número
+    };
+    this.loading = true;
+
+    console.log(this.newItem);
+    console.log('Token enviado:', token);
+
+    this.http.post<ItemCreateResponse>('http://localhost:5170/api/items', itemToSend, { headers })
+      .subscribe({
+        next: (response) => {
+          // Adiciona o novo item à lista
+          if (response.data) {
+            this.items.unshift(response.data);
+          }
+
+          this.closeCreateModal();
+          this.updateFilteredItems();
+          this.loading = false;
+
+          // Feedback visual (opcional)
+          console.log('Item cadastrado com sucesso!');
+        },
+        error: (error) => {
+          this.error = 'Erro ao cadastrar item';
+          this.loading = false;
+          console.error('Erro:', error);
+        }
+      });
   }
 }

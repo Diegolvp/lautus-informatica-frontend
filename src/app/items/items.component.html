@@ -23,7 +23,8 @@
         </header>
 
         <!-- Estatísticas -->
-        <div *ngIf="!loading && !error && filteredItems.length > 0" class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
+        <div *ngIf="!loading && !error && filteredItems.length > 0"
+            class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                 <div class="text-2xl font-bold text-gray-900">{{ totalItems }}</div>
                 <div class="text-gray-500 text-sm">Total de Itens</div>
@@ -117,7 +118,7 @@
                         <!-- Ações -->
                         <div class="flex justify-between pt-3 border-t border-gray-100">
                             <!-- Editar -->
-                            <button (click)="editItem(item)"
+                            <button (click)="openEditModal(item)"
                                 class="flex items-center space-x-1 text-blue-600 hover:text-blue-800 transition duration-200">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path
@@ -127,7 +128,7 @@
                             </button>
 
                             <!-- Excluir -->
-                            <button (click)="deleteItem(item)"
+                            <button (click)="openDeleteModal(item)"
                                 class="flex items-center space-x-1 text-red-600 hover:text-red-800 transition duration-200">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
@@ -140,6 +141,243 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Modal de Edição -->
+            <div *ngIf="showEditModal"
+                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+
+                    <!-- Header do Modal -->
+                    <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-900">Editar Item</h2>
+                        <button (click)="closeEditModal()"
+                            class="text-gray-400 hover:text-gray-600 transition duration-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Formulário -->
+                    <form (ngSubmit)="submitEditItem()" class="p-6 space-y-4">
+
+                        <!-- Nome -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Item *</label>
+                            <input type="text" [(ngModel)]="editItemData.name" name="editName" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Ex: Teclado Mecânico">
+                        </div>
+
+                        <!-- Descrição -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                            <textarea [(ngModel)]="editItemData.description" name="editDescription" rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Descreva o item..."></textarea>
+                        </div>
+
+                        <!-- Categoria -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
+                            <select [(ngModel)]="editItemData.category" name="editCategory" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione uma categoria</option>
+                                <option *ngFor="let cat of categories" [value]="cat.value">
+                                    {{ cat.text }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Preço Unitário -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Preço Unitário (R$) *</label>
+                            <input type="number" [(ngModel)]="editItemData.unitPrice" name="editUnitPrice" required
+                                min="0" step="0.01"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="0,00">
+                        </div>
+
+                        <!-- Quantidade -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade em Estoque *</label>
+                            <input type="number" [(ngModel)]="editItemData.quantity" name="editQuantity" required
+                                min="0"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="0">
+                        </div>
+
+                        <!-- Mensagem de Erro -->
+                        <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                            {{ error }}
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="flex space-x-3 pt-4">
+                            <button type="button" (click)="closeEditModal()"
+                                class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200">
+                                Cancelar
+                            </button>
+                            <button type="submit" [disabled]="!isEditFormValid() || loading"
+                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200">
+                                {{ loading ? 'Salvando...' : 'Salvar Alterações' }}
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+            <div *ngIf="showCreateModal"
+                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+
+                    <!-- Header do Modal -->
+                    <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-900">Cadastrar Novo Item</h2>
+                        <button (click)="closeCreateModal()"
+                            class="text-gray-400 hover:text-gray-600 transition duration-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Formulário -->
+                    <form (ngSubmit)="submitNewItem()" class="p-6 space-y-4">
+
+                        <!-- Nome -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Item *</label>
+                            <input type="text" [(ngModel)]="newItem.name" name="name" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Ex: Teclado Mecânico">
+                        </div>
+
+                        <!-- Descrição -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                            <textarea [(ngModel)]="newItem.description" name="description" rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Descreva o item..."></textarea>
+                        </div>
+
+                        <!-- Categoria -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
+                            <select [(ngModel)]="newItem.category" name="category" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Selecione uma categoria</option>
+                                <option *ngFor="let cat of categories" [value]="cat.value">
+                                    {{ cat.text }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Preço Unitário -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Preço Unitário (R$) *</label>
+                            <input type="number" [(ngModel)]="newItem.unitPrice" name="unitPrice" required min="0"
+                                step="0.01"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="0,00">
+                        </div>
+
+                        <!-- Quantidade -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade em Estoque *</label>
+                            <input type="number" [(ngModel)]="newItem.quantity" name="quantity" required min="0"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="0">
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="flex space-x-3 pt-4">
+                            <button type="button" (click)="closeCreateModal()"
+                                class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200">
+                                Cancelar
+                            </button>
+                            <button type="submit" [disabled]="!isFormValid()"
+                                class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200">
+                                Cadastrar
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+            <!-- Modal de Confirmação de Delete -->
+            <div *ngIf="showDeleteModal"
+                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+
+                    <!-- Header do Modal -->
+                    <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-900">Confirmar Exclusão</h2>
+                        <button (click)="closeDeleteModal()"
+                            class="text-gray-400 hover:text-gray-600 transition duration-200"
+                            [disabled]="deleteLoading">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Conteúdo -->
+                    <div class="p-6">
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="bg-red-100 p-3 rounded-full">
+                                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <p class="text-center text-gray-700 mb-2">
+                            Tem certeza que deseja excluir o item?
+                        </p>
+
+                        <p class="text-center font-semibold text-lg text-red-600 mb-4">
+                            "{{ itemToDelete?.name }}"
+                        </p>
+
+                        <p class="text-center text-sm text-gray-500 mb-6">
+                            Esta ação não pode ser desfeita.
+                        </p>
+
+                        <!-- Mensagem de Erro -->
+                        <div *ngIf="error"
+                            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                            {{ error }}
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="flex space-x-3">
+                            <button type="button" (click)="closeDeleteModal()" [disabled]="deleteLoading"
+                                class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200">
+                                Cancelar
+                            </button>
+                            <button type="button" (click)="confirmDelete()" [disabled]="deleteLoading"
+                                class="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition duration-200 flex items-center justify-center">
+                                <svg *ngIf="deleteLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                    fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                {{ deleteLoading ? 'Excluindo...' : 'Excluir' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Empty State -->
