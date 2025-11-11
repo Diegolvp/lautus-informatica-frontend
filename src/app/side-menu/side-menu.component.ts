@@ -3,6 +3,20 @@ import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { filter } from 'rxjs';
+import {
+  faChartBar,
+  faUsers,
+  faBuildingUser,
+  faBox,
+  faTools,
+  faGear,
+  faDisplay,
+  faUser,
+  faStickyNote,
+  faHeadset,
+  faSackDollar,
+} from '@fortawesome/free-solid-svg-icons';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 export interface MenuItem {
   label: string;
@@ -17,36 +31,38 @@ export interface MenuItem {
 @Component({
   selector: 'app-side-menu',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FaIconComponent],
   templateUrl: './side-menu.component.html',
-  styleUrls: ['./side-menu.component.css']
+  styleUrls: ['./side-menu.component.css'],
 })
-
 export class SideMenuComponent implements OnInit {
+  faChartBar = faChartBar;
+  faUsers = faUsers;
+  faBuildingUser = faBuildingUser;
+  faBox = faBox;
+  faTools = faTools;
+  faGear = faGear;
+  faDisplay = faDisplay;
   @Input() user: any;
   @Input() logoUrl: string = 'assets/images/logo.png';
 
   menuItems: MenuItem[] = [];
 
-  constructor(private router: Router,
-      private authService: AuthService
-  ) { }
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
     this.loadMenuItems();
     this.setActiveItemByRoute();
-  
-    this.router.events
-    .pipe(filter(event => event instanceof NavigationEnd))
-    .subscribe(() => {
+
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
       this.setActiveItemByRoute();
     });
   }
 
   private setActiveItemByRoute() {
     const currentRoute = this.router.url;
-    
-    this.menuItems.forEach(item => {
+
+    this.menuItems.forEach((item) => {
       item.isActive = item.route ? currentRoute.startsWith(item.route) : false;
     });
   }
@@ -73,40 +89,40 @@ export class SideMenuComponent implements OnInit {
     return [
       {
         label: 'Dashboard',
-        icon: '📊',
+        icon: 'faChartBar',
         route: '/home',
-        isActive: true
+        isActive: true,
       },
       {
         label: 'Usuários',
-        icon: '👥',
+        icon: 'faUsers',
         route: '/admin/users',
       },
       {
         label: 'Clientes',
-        icon: '🏢',
+        icon: 'faBuildingUser',
         route: '/admin/clients',
       },
       {
         label: 'Itens',
-        icon: '📦',
+        icon: 'faBox',
         route: '/admin/items',
       },
       {
         label: 'Ordens de Serviço',
-        icon: '🔧',
+        icon: 'faTools',
         route: '/admin/service-orders',
       },
       {
         label: 'Relatórios',
-        icon: '📈',
-        route: '/admin/reports'
+        icon: 'faDisplay',
+        route: '/admin/reports',
       },
       {
         label: 'Configurações',
-        icon: '⚙️',
-        route: '/admin/settings'
-      }
+        icon: 'faGear',
+        route: '/admin/settings',
+      },
     ];
   }
 
@@ -114,36 +130,36 @@ export class SideMenuComponent implements OnInit {
     return [
       {
         label: 'Minha Conta',
-        icon: '👤',
+        icon: 'faUser',
         route: '/client/dashboard',
-        isActive: true
+        isActive: true,
       },
       {
         label: 'Meus Pedidos',
-        icon: '📦',
+        icon: 'faBox',
         route: '/client/orders',
         badge: 5,
-        badgeColor: 'blue'
+        badgeColor: 'blue',
       },
       {
         label: 'Orçamentos',
-        icon: '💰',
+        icon: 'faSackDollar',
         route: '/client/quotes',
         badge: 2,
-        badgeColor: 'green'
+        badgeColor: 'green',
       },
       {
         label: 'Suporte',
-        icon: '🔧',
+        icon: 'faHeadset',
         route: '/client/support',
         badge: 1,
-        badgeColor: 'yellow'
+        badgeColor: 'yellow',
       },
       {
         label: 'Meus Dados',
-        icon: '📝',
-        route: '/client/profile'
-      }
+        icon: 'faStickyNote',
+        route: '/client/profile',
+      },
     ];
   }
 
@@ -154,7 +170,7 @@ export class SideMenuComponent implements OnInit {
   }
 
   setActiveItem(clickedItem: MenuItem) {
-    this.menuItems.forEach(item => {
+    this.menuItems.forEach((item) => {
       item.isActive = item === clickedItem;
     });
   }
@@ -174,7 +190,7 @@ export class SideMenuComponent implements OnInit {
       blue: 'bg-blue-100 text-blue-600',
       green: 'bg-green-100 text-green-600',
       purple: 'bg-purple-100 text-purple-600',
-      yellow: 'bg-yellow-100 text-yellow-600'
+      yellow: 'bg-yellow-100 text-yellow-600',
     };
 
     return colorMap[item.badgeColor || 'blue'];
