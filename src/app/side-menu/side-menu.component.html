@@ -52,16 +52,18 @@
       </div>
 
       <!-- User Details -->
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-gray-900 truncate">
-          {{ user?.name || 'Usuário' }}
-        </p>
-        <p class="text-xs text-gray-500 truncate">
-          {{ user?.email || 'admin@lautus.com' }}
-        </p>
-        <button (click)="logout()"
-          class="bg-red-50 hover:bg-red-600 hover:text-white text-red-600 px-4 py-2 rounded-lg transition duration-200">
-          <fa-icon [icon]="faSignOutAlt" class="mr-2"></fa-icon>
+      <div class="flex-1 min-w-0 flex justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-900 truncate">
+            {{ user?.name || 'Usuário' }}
+          </p>
+          <p class="text-xs text-gray-500 truncate">
+            {{ user?.email || 'admin@lautus.com' }}
+          </p>
+        </div>
+        <button (click)="logout()" class="bg-red-50 hover:bg-red-600 hover:text-white text-red-600 px-4 rounded-full transition duration-200 flex justify-center items-center text-center
+          w-10 h-10">
+          <fa-icon [icon]="faSignOutAlt" class=""></fa-icon>
         </button>
       </div>
 
