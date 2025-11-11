@@ -6,7 +6,7 @@ import { SideMenuComponent } from '../side-menu/side-menu.component';
 import { ApiResponse } from '../interfaces/api-response';
 import { FormsModule } from '@angular/forms';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faTrash, faPen, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faShieldHalved, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule, FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 
@@ -27,6 +27,11 @@ export interface UserCreateRequest {
   email: string;
   role: number;
   address: string;
+}
+
+export interface ChangePassRequest {
+  password: string;
+  verifyNewPassword: string;
 }
 
 export enum Role {
@@ -51,6 +56,8 @@ export class UsersComponent implements OnInit {
   faTrash = faTrash;
   faShieldHalved = faShieldHalved;
   faPen = faPen;
+  faLock = faLock;
+  faLockOpen = faLockOpen;
   users: User[] = [];
   loading: boolean = true;
   error: string = '';
@@ -103,6 +110,12 @@ export class UsersComponent implements OnInit {
   showEditModal: boolean = false;
   editingUser: User | null = null;
   editUserData: Partial<User> = {};
+
+  showChangePassModal: boolean = false;
+  changePassData: Partial<ChangePassRequest> = {
+    password: '',
+    verifyNewPassword: ''
+  };
 
   showDeleteModal: boolean = false;
   UserToDelete: User | null = null;
@@ -200,11 +213,13 @@ export class UsersComponent implements OnInit {
     this.UserToDelete = user;
     this.showDeleteModal = true;
   }
+
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.UserToDelete = null;
     this.deleteLoading = false;
   }
+
   confirmDelete(): void {
     if (!this.UserToDelete) return;
 
@@ -254,12 +269,10 @@ export class UsersComponent implements OnInit {
     };
   }
 
-  // Fechar modal
   closeCreateModal(): void {
     this.showCreateModal = false;
   }
 
-  // Validar formulário
   isFormValid(): boolean {
     return !!this.newUser.username &&
       !!this.newUser.email &&
@@ -270,7 +283,6 @@ export class UsersComponent implements OnInit {
       this.newUser.role !== undefined;
   }
 
-  // Submeter novo item
   submitNewUser(): void {
     if (!this.isFormValid()) return;
 
@@ -284,7 +296,7 @@ export class UsersComponent implements OnInit {
 
     const userToSend = {
       ...this.newUser,
-      role: Number(this.newUser.role), 
+      role: Number(this.newUser.role),
     };
     this.loading = true;
 
@@ -312,4 +324,69 @@ export class UsersComponent implements OnInit {
         }
       });
   }
+
+  openChangePassModal(user: User): void {
+    this.editingUser = user;
+    this.showChangePassModal = true;
+  }
+
+  closeChangePassModal(): void {
+    this.showChangePassModal = false;
+    this.editingUser = null;
+  }
+
+  isChangePassFormValid(): boolean {
+    return !!this.changePassData.password && !!this.changePassData.verifyNewPassword && this.changePassData.password === this.changePassData.verifyNewPassword; 
+  }
+
+  confirmChangePass(): void {
+    if (!this.isChangePassFormValid() || !this.editingUser) return;
+
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const passToSend = {
+      newPassword: this.changePassData.password,
+      verifyNewPassword: this.changePassData.verifyNewPassword
+    };
+
+    this.loading = true;
+
+    this.http.post<ApiResponse<boolean>>(`http://localhost:5170/api/Users/${this.editingUser.id}/change-password`, passToSend, { headers })
+      .subscribe({
+        next: (response) => {
+          if (response.data && response.success) {
+            const index = this.users.findIndex(user => user.id === this.editingUser!.id);
+            if (index > -1) {
+            }
+
+            this.closeChangePassModal();
+
+            console.log('Senha alterada com sucesso!');
+          } else {
+            this.error = response.message || 'Erro ao editar User';
+          }
+
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Erro ao mudar senha:', error);
+
+          if (error.status === 500) {
+            this.error = 'Erro interno no servidor ao editar User';
+          } else if (error.status === 400) {
+            this.error = 'Dados inválidos para edição';
+          } else {
+            this.error = 'Erro  ao mudar senha';
+          }
+
+          this.loading = false;
+        }
+      });
+  }
+
+
 }
