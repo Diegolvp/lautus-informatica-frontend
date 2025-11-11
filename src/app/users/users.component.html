@@ -146,13 +146,13 @@
                                 
                                 <td class="px-6 py-4 whitespace-nowrap ">
                                     <div class="flex justify-center">
-                                        <button *ngIf="userIsLocked" (click)="getUserUnlock(user)"
+                                        <button *ngIf="getUserUnlock(user)" (click)="unlockUser(user)"
                                             class="w-8 h-8 bg-yellow-100 hover:bg-yellow-200 text-yellow-600 rounded-full flex items-center justify-center transition duration-200"
                                             title="Editar usuário">
                                             <fa-icon class="text-xs" [icon]="faLock"></fa-icon>
                                         </button>
 
-                                        <button *ngIf="!userIsLocked" (click)="getUserUnlock(user)"
+                                        <button *ngIf="getUserUnlock(user) === false"
                                             class="w-8 h-8 bg-green-100 hover:bg-green-200 text-green-600 rounded-full flex items-center justify-center transition duration-200"
                                             title="Editar usuário">
                                             <fa-icon class="text-xs" [icon]="faLockOpen"></fa-icon>

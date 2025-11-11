@@ -9,6 +9,15 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrash, faPen, faShieldHalved, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule, FaIconComponent } from '@fortawesome/angular-fontawesome';
 
+export interface UserRequest {
+  id: number;
+  username: string;
+  phone: string;
+  email: string;
+  role: number;
+  address: string;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -16,6 +25,7 @@ export interface User {
   email: string;
   role: number;
   address: string;
+  isLocked: boolean;
 }
 
 export interface UserCreateRequest {
@@ -40,7 +50,7 @@ export enum Role {
 
 export interface UserResponse extends ApiResponse<User[]> {}
 
-export interface UserCreateResponse extends ApiResponse<UserCreateRequest> {}
+export interface UserCreateResponse extends ApiResponse<User> {}
 
 @Component({
   selector: 'app-users',
@@ -120,10 +130,8 @@ export class UsersComponent implements OnInit {
     phone: '',
     email: '',
     role: 0,
-    address: '',
+    address: ''
   };
-
-  userIsLocked: boolean = false;
 
   openEditModal(user: User): void {
     this.editingUser = user;
@@ -393,11 +401,12 @@ export class UsersComponent implements OnInit {
       });
   }
 
-  getUserUnlock(user: User): void {
-    this.editingUser = user;
+  getUserUnlock(user: User): boolean {
+    return user.isLocked;
   }
 
-  unlockUser(): void {
+  unlockUser(user: User): void {
+    this.editingUser = user;
     if (!this.editingUser) return;
 
     const token = this.authService.getToken();
@@ -408,18 +417,18 @@ export class UsersComponent implements OnInit {
 
     this.loading = true;
 
-    this.http.post<ApiResponse<boolean>>(`http://localhost:5170/api/Users/${this.editingUser.id}/lock`, { headers })
+    this.http.post<ApiResponse<object>>(`http://localhost:5170/api/Users/${this.editingUser.id}/lock`, { headers })
       .subscribe({
         next: (response) => {
-          if (response.data && response.success) {
+          if (response.success) {
             const index = this.users.findIndex(user => user.id === this.editingUser!.id);
             if (index > -1) {
             }
 
 
-            console.log('Senha alterada com sucesso!');
+            console.log('Usuario desbloquado com sucesso!');
           } else {
-            this.error = response.message || 'Erro ao editar User';
+            this.error = response.message || 'Erro ao desbloquear User';
           }
 
           this.loading = false;
@@ -428,9 +437,9 @@ export class UsersComponent implements OnInit {
           console.error('❌ Erro ao mudar senha:', error);
 
           if (error.status === 500) {
-            this.error = 'Erro interno no servidor ao editar User';
+            this.error = 'Erro interno no servidor ao desbloquear User';
           } else if (error.status === 400) {
-            this.error = 'Dados inválidos para edição';
+            this.error = 'Dados inválidos para desbloquear';
           } else {
             this.error = 'Erro  ao mudar senha';
           }
