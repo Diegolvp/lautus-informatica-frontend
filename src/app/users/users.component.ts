@@ -344,6 +344,7 @@ export class UsersComponent implements OnInit {
           }
 
           this.closeCreateModal();
+          this.filteredUsers = [...this.users]
           this.loading = false;
 
           // Feedback visual (opcional)
