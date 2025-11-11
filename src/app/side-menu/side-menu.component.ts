@@ -15,12 +15,13 @@ import {
   faStickyNote,
   faHeadset,
   faSackDollar,
+  IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 export interface MenuItem {
   label: string;
-  icon: string;
+  icon: IconDefinition;
   route?: string;
   badge?: number;
   badgeColor?: string;
@@ -93,38 +94,38 @@ export class SideMenuComponent implements OnInit {
     return [
       {
         label: 'Dashboard',
-        icon: 'faChartBar',
+        icon: faChartBar,
         route: '/home',
         isActive: true,
       },
       {
         label: 'Usuários',
-        icon: 'faUsers',
+        icon: faUsers,
         route: '/admin/users',
       },
       {
         label: 'Clientes',
-        icon: 'faBuildingUser',
+        icon: faBuildingUser,
         route: '/admin/clients',
       },
       {
         label: 'Itens',
-        icon: 'faBox',
+        icon: faBox,
         route: '/admin/items',
       },
       {
         label: 'Ordens de Serviço',
-        icon: 'faTools',
+        icon: faTools,
         route: '/admin/service-orders',
       },
       {
-        label: 'Relatórios',
-        icon: 'faDisplay',
-        route: '/admin/reports',
+        label: 'Monitoramento',
+        icon: faDisplay,
+        route: '/admin/logs',
       },
       {
         label: 'Configurações',
-        icon: 'faGear',
+        icon: faGear,
         route: '/admin/settings',
       },
     ];
@@ -134,34 +135,34 @@ export class SideMenuComponent implements OnInit {
     return [
       {
         label: 'Minha Conta',
-        icon: 'faUser',
+        icon: faUser,
         route: '/client/dashboard',
         isActive: true,
       },
       {
         label: 'Meus Pedidos',
-        icon: 'faBox',
+        icon: faBox,
         route: '/client/orders',
         badge: 5,
         badgeColor: 'blue',
       },
       {
         label: 'Orçamentos',
-        icon: 'faSackDollar',
+        icon: faSackDollar,
         route: '/client/quotes',
         badge: 2,
         badgeColor: 'green',
       },
       {
         label: 'Suporte',
-        icon: 'faHeadset',
+        icon: faHeadset,
         route: '/client/support',
         badge: 1,
         badgeColor: 'yellow',
       },
       {
         label: 'Meus Dados',
-        icon: 'faStickyNote',
+        icon: faStickyNote,
         route: '/client/profile',
       },
     ];
