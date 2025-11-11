@@ -1,0 +1,147 @@
+<div class="flex">
+  <app-side-menu class="w-[288px]" [user]="currentUser" logoUrl="assets/images/logo.png">
+  </app-side-menu>
+  <div class="flex-1 overflow-auto w-full">
+    <header class="bg-white shadow-sm">
+      <div class="px-6 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-gray-900">Detalhe da Ordem de Serviço</h1>
+          <div class="flex items-center space-x-4">
+            <button (click)="goBack()"
+              class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition duration-200">
+              Voltar
+            </button>
+            <div class="w-8 h-8 bg-gray-200 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="w-full p-6">
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error && !loading" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        {{ error }}
+      </div>
+
+      <!-- Detalhes -->
+      <div *ngIf="serviceOrder && !loading" class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">
+            Ordem de Serviço #{{ serviceOrder.id }}
+          </h2>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Informações Básicas -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Informações do Equipamento</h3>
+            <dl class="grid grid-cols-1 gap-4">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Equipamento</dt>
+                <dd class="text-sm text-gray-900">{{ serviceOrder.equipment }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Problema</dt>
+                <dd class="text-sm text-gray-900">{{ serviceOrder.problem }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Descrição</dt>
+                <dd class="text-sm text-gray-900">{{ serviceOrder.description }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Datas e Status -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Datas e Status</h3>
+            <dl class="grid grid-cols-1 gap-4">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Data de Entrada</dt>
+                <dd class="text-sm text-gray-900">{{ serviceOrder.entryDate }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Data de Conclusão</dt>
+                <dd class="text-sm text-gray-900">{{ serviceOrder.completionDate || 'Não concluída' }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Status</dt>
+                <dd class="text-sm">
+                  <span [class]="getStatusClass(serviceOrder.status)"
+                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                    {{ serviceOrder.status }}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Custos -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Custos</h3>
+            <dl class="grid grid-cols-1 gap-4">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Preço do Serviço</dt>
+                <dd class="text-sm text-gray-900">{{ serviceOrder.servicePrice | currency:'BRL' }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Custo Total dos Itens</dt>
+                <dd class="text-sm text-gray-900">{{ serviceOrder.totalItemsCost | currency:'BRL' }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Custo Total</dt>
+                <dd class="text-sm text-gray-900 font-semibold">{{ serviceOrder.totalCost | currency:'BRL' }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Itens Utilizados -->
+          <div class="md:col-span-2">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Itens Utilizados</h3>
+            <div *ngIf="serviceOrder.usedItems.length > 0" class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Quantidade</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço
+                      Unitário</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço
+                      Total</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr *ngFor="let usedItem of serviceOrder.usedItems">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm font-medium text-gray-900">{{ usedItem.item.name }}</div>
+                      <div class="text-sm text-gray-500">{{ usedItem.item.description }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ usedItem.quantity }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ usedItem.item.unitPrice | currency:'BRL' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ usedItem.totalPrice | currency:'BRL' }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div *ngIf="serviceOrder.usedItems.length === 0" class="text-center py-4">
+              <p class="text-sm text-gray-500">Nenhum item utilizado</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
