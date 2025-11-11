@@ -123,6 +123,8 @@ export class UsersComponent implements OnInit {
     address: '',
   };
 
+  userIsLocked: boolean = false;
+
   openEditModal(user: User): void {
     this.editingUser = user;
     this.editUserData = {
@@ -391,5 +393,50 @@ export class UsersComponent implements OnInit {
       });
   }
 
+  getUserUnlock(user: User): void {
+    this.editingUser = user;
+  }
 
+  unlockUser(): void {
+    if (!this.editingUser) return;
+
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    this.loading = true;
+
+    this.http.post<ApiResponse<boolean>>(`http://localhost:5170/api/Users/${this.editingUser.id}/lock`, { headers })
+      .subscribe({
+        next: (response) => {
+          if (response.data && response.success) {
+            const index = this.users.findIndex(user => user.id === this.editingUser!.id);
+            if (index > -1) {
+            }
+
+
+            console.log('Senha alterada com sucesso!');
+          } else {
+            this.error = response.message || 'Erro ao editar User';
+          }
+
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Erro ao mudar senha:', error);
+
+          if (error.status === 500) {
+            this.error = 'Erro interno no servidor ao editar User';
+          } else if (error.status === 400) {
+            this.error = 'Dados inválidos para edição';
+          } else {
+            this.error = 'Erro  ao mudar senha';
+          }
+
+          this.loading = false;
+        }
+      });
+  }
 }
