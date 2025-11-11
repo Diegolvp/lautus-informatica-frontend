@@ -118,7 +118,7 @@ export class SideMenuComponent implements OnInit {
       {
         label: 'Ordens de Serviço',
         icon: faTools,
-        route: '/admin/service-orders',
+        route: '/service-orders',
       },
       {
         label: 'Monitoramento',
