@@ -4,6 +4,11 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
 import { SideMenuComponent } from '../side-menu/side-menu.component';
 import { ApiResponse } from '../interfaces/api-response';
+import { FormsModule } from '@angular/forms';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faTrash, faPen, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule, FaIconComponent } from '@fortawesome/angular-fontawesome';
+
 
 export interface User {
   id: number;
@@ -14,17 +19,25 @@ export interface User {
   address: string;
 }
 
+export enum Role {
+  Admin = 0,
+  Client = 1
+}
+
 export interface UserResponse extends ApiResponse<User[]> {
 }
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, SideMenuComponent],
+  imports: [CommonModule, SideMenuComponent, FormsModule, FaIconComponent, FaIconComponent],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.css']
 })
 export class UsersComponent implements OnInit {
+  faTrash = faTrash;
+  faShieldHalved = faShieldHalved;
+  faPen = faPen;
   users: User[] = [];
   loading: boolean = true;
   error: string = '';
@@ -56,6 +69,11 @@ export class UsersComponent implements OnInit {
       });
   }
 
+  roles: { value: number, text: string }[] = [
+    { value: Role.Admin, text: 'Admin' },
+    { value: Role.Client, text: 'Client' }
+  ];
+
   getRoleText(role: number): string {
     return role === 0 ? 'Admin' : 'Cliente';
   }
@@ -75,24 +93,13 @@ export class UsersComponent implements OnInit {
     return this.authService.getCurrentUser();
   }
 
-  deleteUser(user: User) {
-    if (confirm(`Tem certeza que deseja excluir ${user.username}?`)) {
-      this.http.delete(`http://localhost:5170/api/users/${user.id}`)
-        .subscribe({
-          next: () => {
-            this.loadUsers(); // Recarrega a lista
-          },
-          error: (error) => {
-            alert('Erro ao excluir usuário');
-            console.error('Erro:', error);
-          }
-        });
-    }
-  }
-
   showEditModal: boolean = false;
   editingUser: User | null = null;
   editUserData: Partial<User> = {};
+
+  showDeleteModal: boolean = false;
+  UserToDelete: User | null = null;
+  deleteLoading: boolean = false;
 
   openEditModal(user: User): void {
     this.editingUser = user;
@@ -100,6 +107,7 @@ export class UsersComponent implements OnInit {
       username: user.username,
       email: user.email,
       phone: user.phone,
+      address: user.address,
       role: user.role
     };
     this.showEditModal = true;
@@ -113,9 +121,9 @@ export class UsersComponent implements OnInit {
 
   isEditFormValid(): boolean {
     return !!this.editUserData.username &&
-      !!this.editUserData.role &&
-      this.editUserData.email !== undefined &&
-      this.editUserData.address !== undefined;
+         !!this.editUserData.email &&
+         this.editUserData.role !== undefined &&
+         !!this.editUserData.address && !!this.editUserData.phone;
   }
 
   submitEditUser(): void {
@@ -169,4 +177,50 @@ export class UsersComponent implements OnInit {
         }
       });
   }
+
+  openDeleteModal(user: User): void {
+      this.UserToDelete = user;
+      this.showDeleteModal = true;
+    }
+    closeDeleteModal(): void {
+      this.showDeleteModal = false;
+      this.UserToDelete = null;
+      this.deleteLoading = false;
+    }
+    confirmDelete(): void {
+      if (!this.UserToDelete) return;
+  
+      this.deleteLoading = true;
+      const token = this.authService.getToken();
+      const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      });
+  
+      console.log('🗑️ Excluindo Users:', this.UserToDelete);
+  
+      this.http.delete<ApiResponse<boolean>>(`http://localhost:5170/api/users/${this.UserToDelete.id}`, { headers })
+        .subscribe({
+          next: (response) => {
+            console.log('✅ Resposta do delete:', response);
+  
+            if (response.success) {
+              // Remove o Users da lista
+              const index = this.users.findIndex(Users => Users.id === this.UserToDelete!.id);
+              if (index > -1) {
+                this.users.splice(index, 1);
+              }
+              this.closeDeleteModal();
+              console.log('🎉 Users excluído com sucesso!');
+            } else {
+              this.error = response.message || 'Erro ao excluir Users';
+            }
+  
+            this.deleteLoading = false;
+          },
+          error: (error) => {
+            console.error('❌ Erro ao excluir:', error);
+          }
+        });
+    }
 }

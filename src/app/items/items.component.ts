@@ -251,9 +251,6 @@ export class ItemsComponent implements OnInit {
       });
   }
 
-  deleteItem(item: any): void {
-
-  }
   openDeleteModal(item: Item): void {
     this.itemToDelete = item;
     this.showDeleteModal = true;
