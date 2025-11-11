@@ -43,6 +43,10 @@ export class SideMenuComponent implements OnInit {
   faTools = faTools;
   faGear = faGear;
   faDisplay = faDisplay;
+  faUser = faUser;
+  faStickyNote = faStickyNote;
+  faHeadset = faHeadset;
+  faSackDollar = faSackDollar;
   @Input() user: any;
   @Input() logoUrl: string = 'assets/images/logo.png';
 
