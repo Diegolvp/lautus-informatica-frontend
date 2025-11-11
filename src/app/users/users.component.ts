@@ -9,7 +9,6 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrash, faPen, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule, FaIconComponent } from '@fortawesome/angular-fontawesome';
 
-
 export interface User {
   id: number;
   username: string;
@@ -31,21 +30,19 @@ export interface UserCreateRequest {
 
 export enum Role {
   Admin = 0,
-  Client = 1
+  Client = 1,
 }
 
-export interface UserResponse extends ApiResponse<User[]> {
-}
+export interface UserResponse extends ApiResponse<User[]> {}
 
-export interface UserCreateResponse extends ApiResponse<UserCreateRequest> {
-}
+export interface UserCreateResponse extends ApiResponse<UserCreateRequest> {}
 
 @Component({
   selector: 'app-users',
   standalone: true,
   imports: [CommonModule, SideMenuComponent, FormsModule, FaIconComponent, FaIconComponent],
   templateUrl: './users.component.html',
-  styleUrls: ['./users.component.css']
+  styleUrls: ['./users.component.css'],
 })
 export class UsersComponent implements OnInit {
   faTrash = faTrash;
@@ -55,10 +52,7 @@ export class UsersComponent implements OnInit {
   loading: boolean = true;
   error: string = '';
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) { }
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   ngOnInit() {
     this.loadUsers();
@@ -68,23 +62,22 @@ export class UsersComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.http.get<UserResponse>('http://localhost:5170/api/users')
-      .subscribe({
-        next: (response) => {
-          this.users = response.data || [];
-          this.loading = false;
-        },
-        error: (error) => {
-          this.error = 'Erro ao carregar usuários';
-          this.loading = false;
-          console.error('Erro:', error);
-        }
-      });
+    this.http.get<UserResponse>('http://localhost:5170/api/users').subscribe({
+      next: (response) => {
+        this.users = response.data || [];
+        this.loading = false;
+      },
+      error: (error) => {
+        this.error = 'Erro ao carregar usuários';
+        this.loading = false;
+        console.error('Erro:', error);
+      },
+    });
   }
 
-  roles: { value: number, text: string }[] = [
+  roles: { value: number; text: string }[] = [
     { value: Role.Admin, text: 'Admin' },
-    { value: Role.Client, text: 'Client' }
+    { value: Role.Client, text: 'Client' },
   ];
 
   getRoleText(role: number): string {
@@ -92,9 +85,7 @@ export class UsersComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    return status === 'active'
-      ? 'bg-green-100 text-green-800'
-      : 'bg-red-100 text-red-800';
+    return status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   }
   get currentUser() {
     return this.authService.getCurrentUser();
@@ -116,7 +107,7 @@ export class UsersComponent implements OnInit {
     phone: '',
     email: '',
     role: 0,
-    address: ''
+    address: '',
   };
 
   openEditModal(user: User): void {
@@ -126,7 +117,7 @@ export class UsersComponent implements OnInit {
       email: user.email,
       phone: user.phone,
       address: user.address,
-      role: user.role
+      role: user.role,
     };
     this.showEditModal = true;
   }
@@ -138,10 +129,13 @@ export class UsersComponent implements OnInit {
   }
 
   isEditFormValid(): boolean {
-    return !!this.editUserData.username &&
+    return (
+      !!this.editUserData.username &&
       !!this.editUserData.email &&
       this.editUserData.role !== undefined &&
-      !!this.editUserData.address && !!this.editUserData.phone;
+      !!this.editUserData.address &&
+      !!this.editUserData.phone
+    );
   }
 
   submitEditUser(): void {
@@ -149,23 +143,26 @@ export class UsersComponent implements OnInit {
 
     const token = this.authService.getToken();
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     });
 
     const userToSend = {
       ...this.editUserData,
-      role: Number(this.editUserData.role)
+      role: Number(this.editUserData.role),
     };
 
     this.loading = true;
 
-    this.http.put<UserResponse>(`http://localhost:5170/api/Users/${this.editingUser.id}`, userToSend, { headers })
+    this.http
+      .put<UserResponse>(`http://localhost:5170/api/Users/${this.editingUser.id}`, userToSend, {
+        headers,
+      })
       .subscribe({
         next: (response) => {
           if (response.data && response.success) {
             // ✅ Atualiza o User na lista
-            const index = this.users.findIndex(user => user.id === this.editingUser!.id);
+            const index = this.users.findIndex((user) => user.id === this.editingUser!.id);
             if (index > -1) {
             }
 
@@ -192,7 +189,7 @@ export class UsersComponent implements OnInit {
           }
 
           this.loading = false;
-        }
+        },
       });
   }
 
@@ -211,20 +208,23 @@ export class UsersComponent implements OnInit {
     this.deleteLoading = true;
     const token = this.authService.getToken();
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     });
 
     console.log('🗑️ Excluindo Users:', this.UserToDelete);
 
-    this.http.delete<ApiResponse<boolean>>(`http://localhost:5170/api/users/${this.UserToDelete.id}`, { headers })
+    this.http
+      .delete<ApiResponse<boolean>>(`http://localhost:5170/api/users/${this.UserToDelete.id}`, {
+        headers,
+      })
       .subscribe({
         next: (response) => {
           console.log('✅ Resposta do delete:', response);
 
           if (response.success) {
             // Remove o Users da lista
-            const index = this.users.findIndex(Users => Users.id === this.UserToDelete!.id);
+            const index = this.users.findIndex((Users) => Users.id === this.UserToDelete!.id);
             if (index > -1) {
               this.users.splice(index, 1);
             }
@@ -238,7 +238,7 @@ export class UsersComponent implements OnInit {
         },
         error: (error) => {
           console.error('❌ Erro ao excluir:', error);
-        }
+        },
       });
   }
 
@@ -250,7 +250,7 @@ export class UsersComponent implements OnInit {
       phone: '',
       email: '',
       role: 0,
-      address: ''
+      address: '',
     };
   }
 
@@ -261,13 +261,16 @@ export class UsersComponent implements OnInit {
 
   // Validar formulário
   isFormValid(): boolean {
-    return !!this.newUser.username &&
+    return (
+      !!this.newUser.username &&
       !!this.newUser.email &&
       !!this.newUser.address &&
       !!this.newUser.password &&
       !!this.newUser.phone &&
-      !!this.confirmPass && this.confirmPass === this.newUser.password &&
-      this.newUser.role !== undefined;
+      !!this.confirmPass &&
+      this.confirmPass === this.newUser.password &&
+      this.newUser.role !== undefined
+    );
   }
 
   // Submeter novo item
@@ -278,20 +281,21 @@ export class UsersComponent implements OnInit {
 
     // Criar headers com o token
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     });
 
     const userToSend = {
       ...this.newUser,
-      role: Number(this.newUser.role), 
+      role: Number(this.newUser.role),
     };
     this.loading = true;
 
     console.log(this.newUser);
     console.log('Token enviado:', token);
 
-    this.http.post<UserCreateResponse>('http://localhost:5170/api/users', userToSend, { headers })
+    this.http
+      .post<UserCreateResponse>('http://localhost:5170/api/users', userToSend, { headers })
       .subscribe({
         next: (response) => {
           // Adiciona o novo item à lista
@@ -309,7 +313,7 @@ export class UsersComponent implements OnInit {
           this.error = 'Erro ao cadastrar item';
           this.loading = false;
           console.error('Erro:', error);
-        }
+        },
       });
   }
 }
