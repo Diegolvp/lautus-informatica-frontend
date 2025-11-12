@@ -106,11 +106,6 @@ export class SideMenuComponent implements OnInit {
         route: '/admin/users',
       },
       {
-        label: 'Clientes',
-        icon: faBuildingUser,
-        route: '/admin/clients',
-      },
-      {
         label: 'Itens',
         icon: faBox,
         route: '/admin/items',
