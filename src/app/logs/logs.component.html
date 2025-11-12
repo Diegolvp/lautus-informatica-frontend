@@ -116,7 +116,7 @@
 
         <!-- Empty State -->
         <div *ngIf="filteredLogs.length === 0" class="text-center py-12">
-          <div class="text-gray-400 text-6xl mb-4">📝</div>
+          <div class="text-gray-400 text-6xl mb-4"><fa-icon [icon]="faFilePen"></fa-icon></div>
           <h3 class="text-lg font-medium text-gray-900 mb-2">
             {{ searchTerm ? 'Nenhum log encontrado' : 'Nenhum log disponível' }}
           </h3>

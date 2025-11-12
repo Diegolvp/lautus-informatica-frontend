@@ -4,6 +4,8 @@ import { SideMenuComponent } from '../side-menu/side-menu.component';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
+import { FaIconComponent } from "@fortawesome/angular-fontawesome";
+import { faFilePen } from '@fortawesome/free-solid-svg-icons';
 
 export interface Log {
   id: number;
@@ -25,7 +27,7 @@ export interface LogResponse extends ApiResponse<Log[]> {}
 @Component({
   selector: 'app-logs',
   standalone: true,
-  imports: [CommonModule, SideMenuComponent],
+  imports: [CommonModule, SideMenuComponent, FaIconComponent],
   templateUrl: './logs.component.html',
   styleUrls: ['./logs.component.css'],
 })
@@ -35,6 +37,8 @@ export class LogsComponent implements OnInit {
   error: string = '';
   filteredLogs: Log[] = [];
   searchTerm: string = '';
+
+  faFilePen = faFilePen;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
