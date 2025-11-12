@@ -40,7 +40,8 @@ export class LoginComponent {
       },
       error: (error) => {
         this.loading = false;
-        this.errorMessage = error.error?.message || 'Erro ao fazer login';
+        console.error('Teste error:', error.error?.Message);
+        this.errorMessage = error.error?.Message || 'Erro ao fazer login';
         console.error('Login error:', error);
       }
     });
