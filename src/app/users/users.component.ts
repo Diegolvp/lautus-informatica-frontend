@@ -6,8 +6,17 @@ import { SideMenuComponent } from '../side-menu/side-menu.component';
 import { ApiResponse } from '../interfaces/api-response';
 import { FormsModule } from '@angular/forms';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faTrash, faPen, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faShieldHalved, faLock, faLockOpen, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule, FaIconComponent } from '@fortawesome/angular-fontawesome';
+
+export interface UserRequest {
+  id: number;
+  username: string;
+  phone: string;
+  email: string;
+  role: number;
+  address: string;
+}
 
 export interface User {
   id: number;
@@ -16,6 +25,7 @@ export interface User {
   email: string;
   role: number;
   address: string;
+  isLocked: boolean;
 }
 
 export interface UserCreateRequest {
@@ -28,14 +38,21 @@ export interface UserCreateRequest {
   address: string;
 }
 
+export interface ChangePassRequest {
+  password: string;
+  verifyNewPassword: string;
+}
+
 export enum Role {
   Admin = 0,
   Client = 1,
 }
 
-export interface UserResponse extends ApiResponse<User[]> {}
+export interface UserResponse extends ApiResponse<User[]> { }
 
-export interface UserCreateResponse extends ApiResponse<UserCreateRequest> {}
+export interface UserUpdateResponse extends ApiResponse<UserRequest> { }
+
+export interface UserCreateResponse extends ApiResponse<User> { }
 
 @Component({
   selector: 'app-users',
@@ -48,11 +65,18 @@ export class UsersComponent implements OnInit {
   faTrash = faTrash;
   faShieldHalved = faShieldHalved;
   faPen = faPen;
+  faLock = faLock;
+  faLockOpen = faLockOpen;
+  faSearch = faSearch;
   users: User[] = [];
   loading: boolean = true;
   error: string = '';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  filteredUsers: User[] = [];
+
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
   ngOnInit() {
     this.loadUsers();
@@ -66,6 +90,7 @@ export class UsersComponent implements OnInit {
       next: (response) => {
         this.users = response.data || [];
         this.loading = false;
+        this.filteredUsers = [...this.users];
       },
       error: (error) => {
         this.error = 'Erro ao carregar usuários';
@@ -95,6 +120,12 @@ export class UsersComponent implements OnInit {
   editingUser: User | null = null;
   editUserData: Partial<User> = {};
 
+  showChangePassModal: boolean = false;
+  changePassData: Partial<ChangePassRequest> = {
+    password: '',
+    verifyNewPassword: ''
+  };
+
   showDeleteModal: boolean = false;
   UserToDelete: User | null = null;
   deleteLoading: boolean = false;
@@ -107,17 +138,17 @@ export class UsersComponent implements OnInit {
     phone: '',
     email: '',
     role: 0,
-    address: '',
+    address: ''
   };
 
   openEditModal(user: User): void {
     this.editingUser = user;
     this.editUserData = {
       username: user.username,
-      email: user.email,
       phone: user.phone,
-      address: user.address,
+      email: user.email,
       role: user.role,
+      address: user.address,
     };
     this.showEditModal = true;
   }
@@ -152,6 +183,9 @@ export class UsersComponent implements OnInit {
       role: Number(this.editUserData.role),
     };
 
+    console.log(userToSend);
+    console.log(this.editingUser.id);
+
     this.loading = true;
 
     this.http
@@ -164,8 +198,12 @@ export class UsersComponent implements OnInit {
             // ✅ Atualiza o User na lista
             const index = this.users.findIndex((user) => user.id === this.editingUser!.id);
             if (index > -1) {
+              this.users[index] = {
+                ...this.users[index],
+                ...this.editUserData,
+              };
             }
-
+            this.filteredUsers = [...this.users];
             // ✅ Fecha o modal
             this.closeEditModal();
 
@@ -179,7 +217,6 @@ export class UsersComponent implements OnInit {
         error: (error) => {
           console.error('❌ Erro ao editar User:', error);
 
-          // ✅ Melhor tratamento de erro
           if (error.status === 500) {
             this.error = 'Erro interno no servidor ao editar User';
           } else if (error.status === 400) {
@@ -197,11 +234,13 @@ export class UsersComponent implements OnInit {
     this.UserToDelete = user;
     this.showDeleteModal = true;
   }
+
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.UserToDelete = null;
     this.deleteLoading = false;
   }
+
   confirmDelete(): void {
     if (!this.UserToDelete) return;
 
@@ -228,7 +267,11 @@ export class UsersComponent implements OnInit {
             if (index > -1) {
               this.users.splice(index, 1);
             }
+
+
             this.closeDeleteModal();
+            this.filteredUsers = [...this.users]
+
             console.log('🎉 Users excluído com sucesso!');
           } else {
             this.error = response.message || 'Erro ao excluir Users';
@@ -254,12 +297,10 @@ export class UsersComponent implements OnInit {
     };
   }
 
-  // Fechar modal
   closeCreateModal(): void {
     this.showCreateModal = false;
   }
 
-  // Validar formulário
   isFormValid(): boolean {
     return (
       !!this.newUser.username &&
@@ -273,7 +314,6 @@ export class UsersComponent implements OnInit {
     );
   }
 
-  // Submeter novo item
   submitNewUser(): void {
     if (!this.isFormValid()) return;
 
@@ -304,6 +344,7 @@ export class UsersComponent implements OnInit {
           }
 
           this.closeCreateModal();
+          this.filteredUsers = [...this.users]
           this.loading = false;
 
           // Feedback visual (opcional)
@@ -315,5 +356,167 @@ export class UsersComponent implements OnInit {
           console.error('Erro:', error);
         },
       });
+  }
+  openChangePassModal(user: User): void {
+    this.editingUser = user;
+    this.showChangePassModal = true;
+  }
+
+  closeChangePassModal(): void {
+    this.showChangePassModal = false;
+    this.editingUser = null;
+  }
+
+  isChangePassFormValid(): boolean {
+    return !!this.changePassData.password && !!this.changePassData.verifyNewPassword && this.changePassData.password === this.changePassData.verifyNewPassword;
+  }
+
+  confirmChangePass(): void {
+    if (!this.isChangePassFormValid() || !this.editingUser) return;
+
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const passToSend = {
+      newPassword: this.changePassData.password,
+      verifyNewPassword: this.changePassData.verifyNewPassword
+    };
+
+    this.loading = true;
+
+    this.http.post<ApiResponse<boolean>>(`http://localhost:5170/api/Users/${this.editingUser.id}/change-password`, passToSend, { headers })
+      .subscribe({
+        next: (response) => {
+          if (response.data && response.success) {
+            const index = this.users.findIndex(user => user.id === this.editingUser!.id);
+            if (index > -1) {
+            }
+
+            this.closeChangePassModal();
+
+            console.log('Senha alterada com sucesso!');
+          } else {
+            this.error = response.message || 'Erro ao editar User';
+          }
+
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Erro ao mudar senha:', error);
+
+          if (error.status === 500) {
+            this.error = 'Erro interno no servidor ao editar User';
+          } else if (error.status === 400) {
+            this.error = 'Dados inválidos para edição';
+          } else {
+            this.error = 'Erro  ao mudar senha';
+          }
+
+          this.loading = false;
+        }
+      });
+  }
+
+  getUserUnlock(user: User): boolean {
+    return user.isLocked;
+  }
+
+  unlockUser(user: User): void {
+    this.editingUser = user;
+    if (!this.editingUser) return;
+
+    const token = this.authService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    this.loading = true;
+
+    this.http.post<ApiResponse<object>>(`http://localhost:5170/api/Users/${this.editingUser.id}/lock`, { headers })
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            const index = this.users.findIndex(user => user.id === this.editingUser!.id);
+            if (index > -1) {
+              this.users[index].isLocked = false;
+            }
+
+            console.log('Usuario desbloquado com sucesso!');
+          } else {
+            this.error = response.message || 'Erro ao desbloquear User';
+          }
+
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('❌ Erro ao mudar senha:', error);
+
+          if (error.status === 500) {
+            this.error = 'Erro interno no servidor ao desbloquear User';
+          } else if (error.status === 400) {
+            this.error = 'Dados inválidos para desbloquear';
+          } else {
+            this.error = 'Erro  ao mudar senha';
+          }
+
+          this.loading = false;
+        }
+      });
+  }
+
+  sortTable(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.filteredUsers.sort((a, b) => {
+      let valueA, valueB;
+
+      switch (column) {
+        case 'username':
+          valueA = a.username.toLowerCase();
+          valueB = b.username.toLowerCase();
+          break;
+        case 'email':
+          valueA = a.email.toLowerCase();
+          valueB = b.email.toLowerCase();
+          break;
+        case 'address':
+          valueA = a.address.toLowerCase();
+          valueB = b.address.toLowerCase();
+          break;
+        case 'role':
+          valueA = a.role;
+          valueB = b.role;
+          break;
+        case 'block':
+          valueA = a.isLocked;
+          valueB = b.isLocked;
+          break;
+        default:
+          return 0;
+      }
+      if (valueA < valueB) {
+        return this.sortDirection === 'asc' ? -1 : 1;
+      }
+      if (valueA > valueB) {
+        return this.sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }
+
+  getSortIcon(column: string): string {
+    if (this.sortColumn !== column) {
+      return ''; // Ícone neutro
+    }
+    return this.sortDirection === 'asc' ? '↑' : '↓';
   }
 }
