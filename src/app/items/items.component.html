@@ -23,20 +23,49 @@
         </header>
 
         <!-- Estatísticas -->
-        <div *ngIf="!loading && !error && filteredItems.length > 0"
-            class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
+        <div *ngIf="!loading && !error" class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 p-6 py-1">
+
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div class="text-2xl font-bold text-gray-900">{{ totalItems }}</div>
-                <div class="text-gray-500 text-sm">Total de Itens</div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-gray-900">{{ totalItems }}</div>
+                        <div class="text-gray-500 text-sm">Total de Itens</div>
+                    </div>
+                    <fa-icon [icon]="faBoxes" class="text-gray-800 text-xl"></fa-icon>
+                </div>
+                
             </div>
+            
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div class="text-2xl font-bold text-green-600">{{ lowStockItems }}</div>
-                <div class="text-gray-500 text-sm">Estoque Baixo</div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-orange-600">{{ lowStockItems }}</div>
+                        <div class="text-gray-500 text-sm">Estoque Baixo</div>
+                    </div>
+                    <fa-icon [icon]="faExclamationTriangle" class="text-orange-400 text-xl"></fa-icon>
+                </div>
             </div>
+
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                <div class="text-2xl font-bold text-orange-600">{{ totalValue | currency:'BRL' }}</div>
-                <div class="text-gray-500 text-sm">Valor Total</div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-blue-600">{{ categoriesCount }}</div>
+                        <div class="text-gray-500 text-sm">Categorias Ativas</div>
+                    </div>
+                    <fa-icon [icon]="faTags" class="text-blue-400 text-xl"></fa-icon>
+                </div>
             </div>
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-2xl font-bold text-green-600">{{ searchCount }}</div>
+                        <div class="text-gray-500 text-sm">Resultados Pesquisa</div>
+                    </div>
+                    <fa-icon [icon]="faSearch" class="text-green-400 text-xl"></fa-icon>
+                </div>
+            </div>
+            
         </div>
 
         <div class="w-full p-6">
@@ -44,7 +73,7 @@
             <!-- Filtros -->
             <div class="mb-6 flex flex-wrap gap-4">
                 <div class="flex-1 min-w-[300px]">
-                    <input type="text" placeholder="🔍 Buscar itens..." [(ngModel)]="searchTerm" (input)="filterItems()"
+                    <input type="text" placeholder="Buscar itens..." [(ngModel)]="searchTerm" (input)="filterItems()"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
@@ -382,7 +411,7 @@
 
             <!-- Empty State -->
             <div *ngIf="filteredItems.length === 0 && !loading" class="text-center py-12 bg-white rounded-xl shadow-sm">
-                <div class="text-gray-400 text-6xl mb-4">📦</div>
+                <div class="text-gray-400 text-6xl mb-4"><fa-icon [icon]="faBoxOpen"></fa-icon></div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum item encontrado</h3>
                 <p class="text-gray-500 mb-4">Não há itens cadastrados ou os filtros não retornaram resultados.</p>
                 <button (click)="clearFilters()"

@@ -5,6 +5,15 @@ import { SideMenuComponent } from '../side-menu/side-menu.component';
 import { ApiResponse } from '../interfaces/api-response';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
+import { faBoxOpen, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FaIconComponent } from "@fortawesome/angular-fontawesome";
+import { 
+  faBoxes, 
+  faExclamationTriangle, 
+  faTags, 
+  faArrowDown 
+} from '@fortawesome/free-solid-svg-icons';
+
 
 export interface Item {
   id: number;
@@ -32,7 +41,7 @@ export interface ItemCreateResponse extends ApiResponse<Item> {
 @Component({
   selector: 'app-items',
   standalone: true,
-  imports: [CommonModule, FormsModule, SideMenuComponent],
+  imports: [CommonModule, FormsModule, SideMenuComponent, FaIconComponent],
   templateUrl: './items.component.html',
   styleUrls: ['./items.component.css'],
   changeDetection: ChangeDetectionStrategy.Default
@@ -44,7 +53,16 @@ export class ItemsComponent implements OnInit {
   viewMode: 'grid' | 'list' = 'grid';
   searchTerm: string = '';
   selectedCategory: any = 0;
+  categoriesCount : number = 0;
   sortBy: string = 'name';
+
+  searchCount: number = 0;
+
+  faSearch = faSearch;
+  faBoxOpen = faBoxOpen;
+  faBoxes= faBoxes;
+  faExclamationTriangle = faExclamationTriangle;
+  faTags = faTags;
 
   // Estados da aplicação
   loading: boolean = false;
@@ -96,6 +114,7 @@ export class ItemsComponent implements OnInit {
           console.error('Erro:', error);
         }
       });
+      this.categoriesCount = this.categories.length;
   }
 
   getCategoryText(category: number): string {
@@ -158,6 +177,7 @@ export class ItemsComponent implements OnInit {
     this.totalItems = this.items.length;
     this.lowStockItems = this.items.filter(item => item.quantity <= 5 && item.quantity > 0).length;
     this.totalValue = this.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
+    this.searchCount = this.filteredItems.length;
   }
 
   // ✅ Chame este método quando os filtros mudarem
